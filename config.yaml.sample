@@ -6,7 +6,6 @@ mcp_server:
 
 libcloud:
   access_key_id: your_access_key_id
-  base_path: uploads
   bucket: your-bucket-name
   endpoint: https://s3.amazonaws.com
   region: us-east-1

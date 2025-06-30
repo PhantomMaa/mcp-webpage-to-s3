@@ -2,7 +2,6 @@
 
 from typing import Optional
 from pydantic import BaseModel, Field
-import os
 import yaml
 from pathlib import Path
 

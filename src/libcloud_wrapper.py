@@ -175,8 +175,7 @@ class LibcloudStorageWrapper:
         """构建完整的远程路径"""
         path_parts = []
 
-        if self.config.base_path:
-            path_parts.append(self.config.base_path.strip("/"))
+        path_parts.append(self.config.bucket)
 
         if remote_path:
             path_parts.append(remote_path.strip("/"))
