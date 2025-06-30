@@ -22,3 +22,7 @@ dev = [
 
 [project.scripts]
 mcp-web-deploy = "main:run_server"
+
+[tool.black]
+line-length = 150
+target-version = ['py312']

@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 class LibcloudConfig(BaseModel):
-    """Libcloud 远程存储配置"""
+    """云存储配置"""
     remote_type: str = Field(description="远程存储类型，如 s3, oss 等")
     access_key_id: str = Field(description="访问密钥 ID")
     secret_access_key: str = Field(description="访问密钥")
@@ -16,11 +16,19 @@ class LibcloudConfig(BaseModel):
     region: Optional[str] = Field(default=None, description="存储区域")
     bucket: str = Field(description="存储桶名称")
     base_path: str = Field(default="", description="基础路径前缀")
+    remote_name: str = Field(default="myremote", description="远程名称")
+
+
+class MCPServerConfig(BaseModel):
+    """MCP 服务器配置"""
+    transport: str = Field(default="stdio", description="传输协议：stdio, sse, streamable-http")
+    port: int = Field(default=8000, description="MCP 服务器端口")
 
 
 class ServerConfig(BaseModel):
     """MCP 服务器配置"""
     libcloud: LibcloudConfig
+    mcp_server: MCPServerConfig = Field(default_factory=MCPServerConfig)
     log_level: str = Field(default="INFO", description="日志级别")
 
 
