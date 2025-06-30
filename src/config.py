@@ -62,27 +62,3 @@ def load_config(config_path: Optional[str] = None) -> ServerConfig:
         raise ValueError(f"配置文件格式错误: {e}")
     except Exception as e:
         raise ValueError(f"加载配置失败: {e}")
-
-
-def create_sample_config(output_path: str = "config.yaml.sample") -> None:
-    """创建示例配置文件
-    
-    Args:
-        output_path: 输出文件路径
-    """
-    sample_config = {
-        "libcloud": {
-            "remote_name": "myremote",
-            "remote_type": "s3",
-            "access_key_id": "your_access_key_id",
-            "secret_access_key": "your_secret_access_key",
-            "endpoint": "https://s3.amazonaws.com",
-            "region": "us-east-1",
-            "bucket": "your-bucket-name",
-            "base_path": "uploads"
-        },
-        "log_level": "INFO"
-    }
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
-        yaml.dump(sample_config, f, default_flow_style=False, allow_unicode=True)

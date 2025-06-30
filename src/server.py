@@ -7,7 +7,7 @@ from fastmcp import FastMCP
 from loguru import logger
 import sys
 
-from .config import load_config, ServerConfig, create_sample_config
+from .config import load_config, ServerConfig
 from .libcloud_wrapper import LibcloudStorageWrapper, StorageError
 
 
@@ -120,49 +120,6 @@ class MCPLibcloudServer:
                 logger.error(error_msg)
                 return {"success": False, "error": error_msg}
 
-    async def run(self) -> None:
-        """异步运行 MCP 服务器（仅用于 stdio 协议）"""
-        logger.info("启动 MCP Libcloud Server")
-        logger.info(f"使用传输协议: {self.config.mcp_server.transport}")
-
-        # 检查存储连接
-        if not self.storage.check_connection():
-            logger.warning("存储连接检查失败，但服务器将继续运行")
-
-        # 根据配置的传输协议运行 MCP 服务器
-        transport = self.config.mcp_server.transport.lower()
-
-        if transport == "stdio":
-            # 使用标准输入输出传输
-            await self.mcp.run_async()
-        elif transport == "sse" or transport == "streamable-http":
-            # 使用 Server-Sent Events 传输
-            logger.info(f"启动 {transport} 传输模式")
-            await self.mcp.run(transport=transport, host="0.0.0.0", port=self.config.mcp_server.port)
-        else:
-            logger.error(f"不支持的传输协议: {transport}")
-            raise ValueError(f"不支持的传输协议: {transport}")
-
-    def run_sync(self) -> None:
-        """同步运行 MCP 服务器（用于 sse 和 streamable-http 协议）"""
-        logger.info("启动 MCP Libcloud Server")
-        logger.info(f"使用传输协议: {self.config.mcp_server.transport}")
-
-        # 检查存储连接
-        if not self.storage.check_connection():
-            logger.warning("存储连接检查失败，但服务器将继续运行")
-
-        # 根据配置的传输协议运行 MCP 服务器
-        transport = self.config.mcp_server.transport.lower()
-
-        if transport == "sse" or transport == "streamable-http":
-            # 使用 Server-Sent Events 传输 - 让 fastmcp 自己管理事件循环
-            logger.info(f"启动 {transport} 传输模式")
-            self.mcp.run(transport=transport, host="0.0.0.0", port=self.config.mcp_server.port)
-        else:
-            logger.error(f"不支持的传输协议: {transport}，请使用 run() 方法")
-            raise ValueError(f"不支持的传输协议: {transport}")
-
 
 def run_server():
     """运行 MCP Libcloud Server"""
@@ -170,39 +127,31 @@ def run_server():
 
     parser = argparse.ArgumentParser(description="MCP Libcloud Server")
     parser.add_argument("--config", type=str, help="配置文件路径")
-    parser.add_argument(
-        "--create-sample-config", action="store_true", help="创建示例配置文件"
-    )
 
     args = parser.parse_args()
 
-    if args.create_sample_config:
-        create_sample_config()
-        print("示例配置文件已创建: config.yaml.sample")
-        return
-
     try:
-        # 加载配置
+        # 加载配置并创建服务器
         config = load_config(args.config)
-
-        # 创建服务器
         server = MCPLibcloudServer(config)
 
-        # 运行服务器 - 根据传输协议选择合适的启动方式
+        # 根据传输协议选择合适的启动方式
+        transport = config.mcp_server.transport.lower()
         try:
-            transport = config.mcp_server.transport.lower()
             if transport == "stdio":
-                # stdio 协议使用异步方式
-                asyncio.run(server.run())
+                asyncio.run(server.mcp.run_async())
             else:
-                # sse 和 streamable-http 协议使用同步方式，让 fastmcp 自己管理事件循环
-                server.run_sync()
+                logger.info(f"启动 {transport} 传输模式")
+                server.mcp.run(
+                    transport=transport,
+                    host="0.0.0.0",
+                    port=server.config.mcp_server.port,
+                )
         except KeyboardInterrupt:
             print("\n收到中断信号，正在关闭服务器...")
 
     except FileNotFoundError as e:
         print(f"错误: {e}")
-        print("请先创建配置文件，或使用 --create-sample-config 创建示例配置")
         sys.exit(1)
     except Exception as e:
         print(f"服务器启动失败: {e}")
