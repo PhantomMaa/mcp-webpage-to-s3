@@ -6,17 +6,15 @@ import yaml
 from pathlib import Path
 
 
-class LibcloudConfig(BaseModel):
-    """云存储配置"""
+class S3Config(BaseModel):
+    """S3 云存储配置"""
 
-    remote_type: str = Field(description="远程存储类型，如 s3, oss 等")
     access_key_id: str = Field(description="访问密钥 ID")
     secret_access_key: str = Field(description="访问密钥")
     endpoint: Optional[str] = Field(default=None, description="存储服务端点")
     region: Optional[str] = Field(default=None, description="存储区域")
     bucket: str = Field(description="存储桶名称")
-    base_path: str = Field(default="", description="基础路径前缀")
-    remote_name: str = Field(default="myremote", description="远程名称")
+    base_url: str = Field(default="", description="基础 URL 前缀")
 
 
 class MCPServerConfig(BaseModel):
@@ -29,7 +27,7 @@ class MCPServerConfig(BaseModel):
 class ServerConfig(BaseModel):
     """MCP 服务器配置"""
 
-    libcloud: LibcloudConfig
+    s3: S3Config
     mcp_server: MCPServerConfig = Field(default_factory=MCPServerConfig)
     log_level: str = Field(default="INFO", description="日志级别")
 

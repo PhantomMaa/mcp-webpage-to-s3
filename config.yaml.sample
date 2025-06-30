@@ -4,12 +4,12 @@ mcp_server:
   # transport: streamable-http
   # transport: sse
 
-libcloud:
+s3:
   access_key_id: your_access_key_id
+  secret_access_key: your_secret_access_key
   bucket: your-bucket-name
   endpoint: https://s3.amazonaws.com
-  region: us-east-1
-  remote_type: s3
-  secret_access_key: your_secret_access_key
+  base_url: https://your-bucket.s3.ap-southeast-1.amazonaws.com
+  region: ap-southeast-1
 
 log_level: INFO

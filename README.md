@@ -5,8 +5,7 @@
 ## 功能特性
 
 - **deploy_html**: 部署 HTML 文件到远程存储
-- **check_status**: 检查服务器状态和 libcloud 连接
-- 支持多种云存储服务（S3、阿里云 OSS 等）
+- 支持 S3 兼容的云存储服务
 - 详细的错误处理和日志记录
 - 完整的测试覆盖
 
@@ -23,9 +22,6 @@
 ```bash
 # 使用 uv 安装依赖
 uv sync
-
-# 或者安装开发依赖
-uv sync --extra dev
 ```
 
 ### 2. 依赖说明
@@ -35,9 +31,6 @@ uv sync --extra dev
 ### 3. 配置服务器
 
 ```bash
-# 创建示例配置文件
-python -m mcp_libcloud.server --create-sample-config
-
 # 复制并编辑配置文件
 cp config.yaml.sample config.yaml
 # 编辑 config.yaml，填入你的云存储配置
@@ -46,14 +39,10 @@ cp config.yaml.sample config.yaml
 ### 4. 运行服务器
 
 ```bash
-# 使用默认配置文件
 python -m mcp_libcloud.server
 
-# 或指定配置文件
-python -m mcp_libcloud.server --config /path/to/config.yaml
-
 # 或使用安装的命令
-mcp-web-deploy --config config.yaml
+mcp-web-deploy
 ```
 
 ## 配置说明
@@ -61,17 +50,21 @@ mcp-web-deploy --config config.yaml
 配置文件使用 YAML 格式，主要包含以下部分：
 
 ```yaml
-libcloud:
-  remote_name: "myremote"        # 远程存储名称
-  remote_type: "s3"              # 存储类型：s3 或 oss
-  access_key_id: "your_key"      # 访问密钥 ID
-  secret_access_key: "your_secret" # 访问密钥
-  endpoint: "https://s3.amazonaws.com" # 服务端点
-  region: "us-east-1"            # 存储区域
-  bucket: "your-bucket"          # 存储桶名称
-  base_path: "uploads"           # 基础路径前缀
+mcp_server:
+  port: 8001
+  transport: stdio
+  # transport: streamable-http
+  # transport: sse
 
-log_level: "INFO"                # 日志级别
+s3:
+  access_key_id: your_access_key_id
+  secret_access_key: your_secret_access_key
+  bucket: your-bucket-name
+  endpoint: https://s3.amazonaws.com
+  base_url: https://your-bucket.s3.ap-southeast-1.amazonaws.com
+  region: ap-southeast-1
+
+log_level: INFO
 ```
 
 ## MCP 工具说明
@@ -82,34 +75,14 @@ log_level: "INFO"                # 日志级别
 
 **参数：**
 - `html_content` (str): HTML 文件内容
-- `filename` (str, 可选): 文件名，默认为 "index.html"
-- `remote_path` (str, 可选): 远程路径，默认为根目录
 
 **返回：**
 ```json
 {
   "success": true,
   "message": "HTML 文件部署成功",
-  "filename": "index.html",
   "remote_path": "index.html",
-  "url": "https://bucket.s3.amazonaws.com/uploads/index.html",
-  "size_bytes": 1024
-}
-```
-
-### check_status
-
-检查服务器状态和 libcloud 连接。
-
-**返回：**
-```json
-{
-  "success": true,
-  "server_status": "running",
-  "storage_connection": "ok",
-  "remote_name": "myremote",
-  "bucket": "your-bucket",
-  "base_path": "uploads"
+  "url": "https://bucket.s3.amazonaws.com/index.html",
 }
 ```
 
@@ -145,12 +118,6 @@ mcp-web-deploy/
 ├── pyproject.toml         # 项目配置
 └── README.md
 ```
-
-## 支持的云存储服务
-
-- **Amazon S3**: 设置 `remote_type: "s3"`
-- **阿里云 OSS**: 设置 `remote_type: "oss"`
-- 其他 S3 兼容存储服务
 
 ## 错误处理
 

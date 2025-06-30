@@ -30,7 +30,7 @@ class MCPLibcloudServer:
 
         # 初始化存储包装器
         try:
-            self.storage = LibcloudStorageWrapper(config.libcloud)
+            self.storage = LibcloudStorageWrapper(config.s3)
             logger.info("存储包装器初始化成功")
         except Exception as e:
             logger.error(f"存储包装器初始化失败: {e}")
