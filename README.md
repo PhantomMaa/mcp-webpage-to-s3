@@ -1,140 +1,139 @@
-# MCP Libcloud Server
+# MCP Web Deploy
 
-一个基于 Python fastmcp 框架的 libcloud MCP 服务器，提供文件上传和 HTML 部署功能。
+一个基于 Python FastMCP 框架的 MCP 服务器，专注于将网页内容快速部署到 S3 存储服务。
+可以看作腾讯 edgeone-pages 的基于 S3 的替代品。 
 
 ## 功能特性
 
-- **deploy_html**: 部署 HTML 文件到远程存储
-- 支持 S3 兼容的云存储服务
-- 详细的错误处理和日志记录
-- 完整的测试覆盖
+- **deploy_html_to_s3**: 将 HTML 内容部署到 S3 存储并获取访问链接
+- 支持所有 S3 兼容的云存储服务（AWS S3、阿里云 OSS、腾讯云 COS 等）
+- 自动生成唯一文件名，避免文件冲突
+- 优化的 HTML 文件缓存和内容类型设置
+- 支持多种传输协议（stdio、http、sse、streamable-http）
 
 ## 安装要求
 
 - Python 3.12+
-- Apache Libcloud 库（已包含在依赖中）
-- uv 包管理器
+- uv 包管理器（推荐）
 
 ## 快速开始
 
-### 1. 安装依赖
+### 1. 克隆项目
+
+```bash
+git clone <repository-url>
+cd mcp-webpage-to-s3
+```
+
+### 2. 安装依赖
 
 ```bash
 # 使用 uv 安装依赖
 uv sync
+
+# 或使用 pip
+pip install -e .
 ```
-
-### 2. 依赖说明
-
-项目使用 Apache Libcloud 库进行云存储操作。
 
 ### 3. 配置服务器
 
 ```bash
 # 复制并编辑配置文件
 cp config.yaml.sample config.yaml
-# 编辑 config.yaml，填入你的云存储配置
+# 编辑 config.yaml，填入你的 S3 存储配置
 ```
 
 ### 4. 运行服务器
 
 ```bash
-python -m mcp_libcloud.server
-
-# 或使用安装的命令
-mcp-web-deploy
+# 使用 Python 直接运行
+python main.py
 ```
 
 ## 配置说明
 
-配置文件使用 YAML 格式，主要包含以下部分：
+配置文件 `config.yaml` 使用 YAML 格式，包含以下配置项：
 
 ```yaml
+# MCP 服务器配置
 mcp_server:
-  port: 8001
-  transport: stdio
-  # transport: streamable-http
-  # transport: sse
+  port: 8001                    # 服务器端口
+  transport: stdio              # 传输协议：stdio, http, sse, streamable-http
 
+# S3 存储配置
 s3:
-  access_key_id: your_access_key_id
-  secret_access_key: your_secret_access_key
-  bucket: your-bucket-name
-  endpoint: https://s3.amazonaws.com
-  base_url: https://your-bucket.s3.ap-southeast-1.amazonaws.com
-  region: ap-southeast-1
+  access_key: your_access_key_id      # S3 访问密钥 ID
+  secret_key: your_secret_access_key  # S3 访问密钥
+  bucket: your-bucket-name            # S3 存储桶名称
+  endpoint: https://s3.amazonaws.com  # S3 服务端点
+  base_url: https://your-bucket.s3.ap-southeast-1.amazonaws.com  # 文件访问基础 URL
+  region: ap-southeast-1              # 存储区域
 
+# 日志级别
 log_level: INFO
+```
+
+### 不同云服务商配置示例
+
+**AWS S3:**
+```yaml
+s3:
+  access_key: AK
+  secret_key: SK
+  bucket: my-website-bucket
+  endpoint: https://s3.amazonaws.com
+  base_url: https://my-website-bucket.s3.amazonaws.com
+  region: us-east-1
+```
+
+**MinIO:**
+```yaml
+s3:
+  access_key: AK
+  secret_key: SK
+  bucket: mcp
+  endpoint: http://minio.example.io:9000
+  base_url: https://minio-api.example.io/mcp
+  region: ""
 ```
 
 ## MCP 工具说明
 
-### deploy_html
+### deploy_html_to_s3
 
-部署 HTML 文件到远程存储。
+将 HTML 内容部署到 S3 存储并返回访问链接。
 
 **参数：**
-- `html_content` (str): HTML 文件内容
+- `html_content` (str): 要部署的 HTML 文件内容
 
-**返回：**
+**返回示例：**
 ```json
 {
   "success": true,
   "message": "HTML 文件部署成功",
-  "remote_path": "index.html",
-  "url": "https://bucket.s3.amazonaws.com/index.html",
+  "url": "https://bucket.s3.amazonaws.com/abc123def456.html"
 }
 ```
 
-## 开发
-
-### 运行测试
-
-```bash
-# 运行所有测试
-uv run pytest
-
-# 运行测试并显示覆盖率
-uv run pytest --cov=mcp_libcloud
-
-# 运行特定测试文件
-uv run pytest tests/test_config.py
-```
-
-### 项目结构
-
-```
-mcp-web-deploy/
-├── src/
-│   ├── __init__.py
-│   ├── config.py          # 配置管理
-│   ├── libcloud_wrapper.py  # libcloud 包装器
-│   └── server.py          # MCP 服务器主要实现
-├── tests/
-│   ├── __init__.py
-│   ├── test_config.py
-│   └── test_libcloud_wrapper.py
-├── config.yaml.sample     # 示例配置文件
-├── pyproject.toml         # 项目配置
-└── README.md
-```
-
-## 错误处理
-
-所有工具在出现错误时都会返回详细的错误信息：
-
+**错误返回示例：**
 ```json
 {
   "success": false,
-  "error": "详细的错误描述",
-  "file_path": "/path/to/file"
+  "error": "S3 客户端未初始化，无法上传文件"
 }
 ```
 
+## 版本历史
+
+- **v0.1.0**: 初始版本，支持基本的 HTML 部署功能
+
 ## 许可证
 
-MIT License
+MIT License - 详见 LICENSE 文件
 
-## 贡献
+## 支持
 
-欢迎提交 Issue 和 Pull Request！
+如有问题或建议，请：
+1. 查看[故障排除](#故障排除)部分
+2. 搜索现有的 Issues
+3. 创建新的 Issue 并提供详细信息
