@@ -1,6 +1,6 @@
 """配置管理模块"""
 
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, Field
 import yaml
 from pathlib import Path
@@ -9,8 +9,8 @@ from pathlib import Path
 class S3Config(BaseModel):
     """S3 云存储配置"""
 
-    access_key_id: str = Field(description="访问密钥 ID")
-    secret_access_key: str = Field(description="访问密钥")
+    access_key: str = Field(description="访问密钥 ID")
+    secret_key: str = Field(description="访问密钥")
     endpoint: Optional[str] = Field(default=None, description="存储服务端点")
     region: Optional[str] = Field(default=None, description="存储区域")
     bucket: str = Field(description="存储桶名称")
@@ -20,7 +20,7 @@ class S3Config(BaseModel):
 class MCPServerConfig(BaseModel):
     """MCP 服务器配置"""
 
-    transport: str = Field(default="stdio", description="传输协议：stdio, sse, streamable-http")
+    transport: Literal["stdio", "http", "sse", "streamable-http"] = Field(default="stdio", description="传输协议：stdio, http, sse, streamable-http")
     port: int = Field(default=8000, description="MCP 服务器端口")
 
 
