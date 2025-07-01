@@ -3,14 +3,13 @@
 import asyncio
 import signal
 import sys
-import logging
 from typing import Any, Dict
 
 from fastmcp import FastMCP
 from loguru import logger
 
-from src.config import load_config, ServerConfig
-from src.libcloud_wrapper import LibcloudStorageWrapper, StorageError
+from src.config import ServerConfig
+from src.s3_wrapper import S3Wrapper, StorageError
 
 from nanoid import generate
 from src.logger import setup_logging
@@ -30,7 +29,7 @@ class MCPLibcloudServer:
 
         # 初始化存储包装器
         try:
-            self.storage = LibcloudStorageWrapper(config.s3)
+            self.storage = S3Wrapper(config.s3)
             logger.info("存储包装器初始化成功")
         except Exception as e:
             logger.error(f"存储包装器初始化失败: {e}")
@@ -43,11 +42,6 @@ class MCPLibcloudServer:
             level=config.log_level,
             format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
         )
-
-        # 配置 uvicorn 和其他第三方库的日志级别，减少关闭时的异常日志
-        logging.getLogger("uvicorn.error").setLevel(logging.CRITICAL)
-        logging.getLogger("uvicorn.access").setLevel(logging.CRITICAL)
-        logging.getLogger("uvicorn.asgi").setLevel(logging.CRITICAL)
 
         # 初始化 FastMCP
         self.mcp = FastMCP("MCP Libcloud Server")
@@ -70,7 +64,7 @@ class MCPLibcloudServer:
                 logger.info(f"开始部署 HTML 文件")
 
                 # 使用 nanoid 生成随机文件名，确保唯一性
-                filename = generate(size=10)
+                filename = generate(size=16)
 
                 # 使用存储包装器的专用方法上传 HTML 内容
                 file_url = self.storage.upload_html_content(
@@ -122,38 +116,15 @@ def run_server():
         transport = config.mcp_server.transport
 
         if transport == "stdio":
-            try:
-                asyncio.run(server.mcp.run_async())
-            except KeyboardInterrupt:
-                logger.info("收到键盘中断，正在关闭服务...")
+            asyncio.run(server.mcp.run_async())
         else:
             logger.info(f"启动 {transport} 传输模式")
-            try:
-                # 临时抑制 uvicorn 的错误日志输出
-                uvicorn_logger = logging.getLogger("uvicorn")
-                original_level = uvicorn_logger.level
-                uvicorn_logger.setLevel(logging.CRITICAL)
-
-                # 使用更优雅的方式启动服务器
-                server.mcp.run(
-                    transport=transport,
-                    host="0.0.0.0",
-                    port=server.config.mcp_server.port,
-                )
-            except KeyboardInterrupt:
-                logger.info("收到键盘中断，正在关闭服务...")
-            except Exception as e:
-                # 过滤掉常见的关闭异常
-                if any(keyword in str(e) for keyword in ["RuntimeError", "ASGI", "Expected ASGI message"]):
-                    # 这些是服务关闭时的正常异常，不需要显示
-                    pass
-                else:
-                    logger.error(f"服务发生异常: {e}")
-            finally:
-                # 恢复原始日志级别
-                if "uvicorn_logger" in locals():
-                    uvicorn_logger.setLevel(original_level)
-
+            # 使用更优雅的方式启动服务器
+            server.mcp.run(
+                transport=transport,
+                host="0.0.0.0",
+                port=server.config.mcp_server.port,
+            )
         logger.info("服务已关闭")
 
     except FileNotFoundError as e:
