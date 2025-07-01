@@ -18,12 +18,12 @@ mcp = FastMCP("mcp-web-deploy", stateless_http=True, json_response=True)
 
 
 @mcp.tool(name="deploy_html_to_s3", description="部署网页到 S3 存储")
-def deploy_html_to_s3(html_content: str = Field(description="环境", default="China-North")) -> Dict[str, Any]:
+def deploy_html_to_s3(html_content: str = Field(description="网页内容")) -> Dict[str, Any]:
     try:
         logger.info("开始部署 HTML 内容")
 
         # 使用 nanoid 生成随机文件名，确保唯一性
-        filename = generate(size=16)
+        filename = generate(alphabet="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", size=16)
 
         # 使用存储包装器的专用方法上传 HTML 内容
         file_url = upload_html_content(html_content=html_content, filename=filename)
@@ -33,7 +33,7 @@ def deploy_html_to_s3(html_content: str = Field(description="环境", default="C
         return {
             "success": True,
             "message": "HTML 文件部署成功",
-            "url": file_url,
+            "url": file_url
         }
 
     except Exception as e:
