@@ -73,30 +73,6 @@ s3:
 log_level: INFO
 ```
 
-### 不同云服务商配置示例
-
-**AWS S3:**
-```yaml
-s3:
-  access_key: AK
-  secret_key: SK
-  bucket: my-website-bucket
-  endpoint: https://s3.amazonaws.com
-  base_url: https://my-website-bucket.s3.amazonaws.com
-  region: us-east-1
-```
-
-**MinIO:**
-```yaml
-s3:
-  access_key: AK
-  secret_key: SK
-  bucket: mcp
-  endpoint: http://minio.example.io:9000
-  base_url: https://minio-api.example.io/mcp
-  region: ""
-```
-
 ## MCP 工具说明
 
 ### deploy_html_to_s3
