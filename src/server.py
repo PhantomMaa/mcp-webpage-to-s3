@@ -14,10 +14,10 @@ from src.logger import setup_logging
 from src.config import get_config
 
 # 创建 MCP 服务器
-mcp = FastMCP("mcp-web-deploy", stateless_http=True, json_response=True)
+mcp = FastMCP("mcp-webpage-to-s3", stateless_http=True, json_response=True)
 
 
-@mcp.tool(name="deploy_html_to_s3", description="部署网页到 S3 存储")
+@mcp.tool(name="deploy_html_to_s3", description="部署网页内容到 S3 存储")
 def deploy_html_to_s3(html_content: str = Field(description="网页内容")) -> Dict[str, Any]:
     try:
         logger.info("开始部署 HTML 内容")
