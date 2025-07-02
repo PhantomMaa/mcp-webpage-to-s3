@@ -49,6 +49,12 @@ cp config.yaml.sample config.yaml
 ```bash
 # 使用 Python 直接运行
 python main.py
+
+# 或使用安装的命令
+mcp-webpage-to-s3
+
+# 或使用 uvx 直接运行（推荐）
+uvx mcp-webpage-to-s3
 ```
 
 ## 配置说明
@@ -102,7 +108,7 @@ log_level: INFO
 
 ## 版本历史
 
-- **v0.1.0**: 初始版本，支持基本的 HTML 部署功能
+- **v0.1.1**: 初始版本，支持基本的 HTML 部署功能
 
 ## 许可证
 
