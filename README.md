@@ -7,10 +7,7 @@
 ## 功能特性
 
 - **deploy_html_to_s3**: 将 HTML 内容部署到 S3 存储并获取访问链接
-- 支持所有 S3 兼容的云存储服务（AWS S3、阿里云 OSS、腾讯云 COS 等）
-- 自动生成唯一文件名，避免文件冲突
-- 优化的 HTML 文件缓存和内容类型设置
-- 支持多种传输协议（stdio、http、sse、streamable-http）
+- 支持所有 S3 兼容的云存储服务
 
 ## 安装要求
 
@@ -58,6 +55,30 @@ uvx mcp-webpage-to-s3
 ```
 
 ## 配置说明
+
+项目支持两种配置方式：**环境变量**（优先）和**配置文件**。这分别适用于 stdio 和 容器化部署 两种模式。
+
+### 方式 1：环境变量配置（stdio 模式下推荐）
+
+```bash
+# S3 存储配置
+export MCP_S3_ACCESS_KEY="your_access_key_id"
+export MCP_S3_SECRET_KEY="your_secret_access_key"
+export MCP_S3_BUCKET="your-bucket-name"
+export MCP_S3_ENDPOINT="https://s3.amazonaws.com"
+export MCP_S3_BASE_URL="https://your-bucket.s3.ap-southeast-1.amazonaws.com"
+export MCP_S3_REGION="ap-southeast-1"
+
+# MCP 服务器配置
+export MCP_TRANSPORT="stdio"
+export MCP_PORT="8001"
+export MCP_LOG_LEVEL="INFO"
+
+# 运行服务器
+uvx mcp-webpage-to-s3
+```
+
+### 方式 2：配置文件（容器化部署下推荐）
 
 配置文件 `config.yaml` 使用 YAML 格式，包含以下配置项：
 
@@ -108,15 +129,17 @@ log_level: INFO
 
 ## 版本历史
 
-- **v0.1.1**: 初始版本，支持基本的 HTML 部署功能
+- **v0.2.0**: 
+  - ✨ 新增环境变量配置支持
+  - 🔧 配置优先级：环境变量 > 配置文件
+  - 📦 改进包构建和入口点配置
+  - 🐳 优化 Docker 和 CI/CD 使用体验
+- **v0.1.1**: 发布到 pypi
+- **v0.1.0**: 初始版本，支持基本的 HTML 部署功能3、阿里云 OSS、腾讯云 COS 等）
+- 自动生成唯一文件名，避免文件冲突
+- 优化的 HTML 文件缓存和内容类型设置
+- 支持多种传输协议（stdio、http、sse、streamable-http）
 
 ## 许可证
 
 MIT License - 详见 LICENSE 文件
-
-## 支持
-
-如有问题或建议，请：
-1. 查看[故障排除](#故障排除)部分
-2. 搜索现有的 Issues
-3. 创建新的 Issue 并提供详细信息

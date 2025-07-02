@@ -1,6 +1,6 @@
 mcp_server:
-  port: 8001
   transport: stdio
+  # port: 8001
   # transport: http
   # transport: sse
   # transport: streamable-http
@@ -8,9 +8,9 @@ mcp_server:
 s3:
   access_key: your_access_key_id
   secret_key: your_secret_access_key
-  bucket: your-bucket-name
   endpoint: https://s3.amazonaws.com
   base_url: https://your-bucket.s3.ap-southeast-1.amazonaws.com
+  bucket: your-bucket-name
   region: ap-southeast-1
 
 log_level: INFO

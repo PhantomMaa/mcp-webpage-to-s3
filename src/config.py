@@ -1,5 +1,6 @@
 """配置管理模块"""
 
+import os
 from typing import Optional, Literal
 from pydantic import BaseModel, Field
 import yaml
@@ -16,12 +17,42 @@ class S3Config(BaseModel):
     bucket: str = Field(description="存储桶名称")
     base_url: str = Field(default="", description="基础 URL 前缀")
 
+    @classmethod
+    def from_env(cls) -> Optional['S3Config']:
+        """从环境变量创建 S3 配置"""
+        access_key = os.getenv('MCP_S3_ACCESS_KEY')
+        secret_key = os.getenv('MCP_S3_SECRET_KEY')
+        bucket = os.getenv('MCP_S3_BUCKET')
+        
+        if not all([access_key, secret_key, bucket]):
+            return None
+            
+        return cls(
+            access_key=access_key,  # type: ignore
+            secret_key=secret_key,  # type: ignore
+            endpoint=os.getenv('MCP_S3_ENDPOINT'),
+            region=os.getenv('MCP_S3_REGION'),
+            bucket=bucket,  # type: ignore
+            base_url=os.getenv('MCP_S3_BASE_URL', '')
+        )
+
 
 class MCPServerConfig(BaseModel):
     """MCP 服务器配置"""
 
     transport: Literal["stdio", "http", "sse", "streamable-http"] = Field(default="stdio", description="传输协议：stdio, http, sse, streamable-http")
     port: int = Field(default=8000, description="MCP 服务器端口")
+
+    @classmethod
+    def from_env(cls) -> 'MCPServerConfig':
+        """从环境变量创建 MCP 服务器配置"""
+        transport_str = os.getenv('MCP_TRANSPORT', 'stdio')
+        # 验证 transport 值
+        valid_transports = ["stdio", "http", "sse", "streamable-http"]
+        transport = transport_str if transport_str in valid_transports else "stdio"
+        port = int(os.getenv('MCP_PORT', '8000'))
+        
+        return cls(transport=transport, port=port)  # type: ignore
 
 
 class ServerConfig(BaseModel):
@@ -32,8 +63,8 @@ class ServerConfig(BaseModel):
     log_level: str = Field(default="INFO", description="日志级别")
 
 
-def load_config() -> ServerConfig:
-    """加载配置文件
+def load_config_from_file() -> ServerConfig:
+    """从配置文件加载配置
 
     Returns:
         ServerConfig: 服务器配置对象
@@ -55,6 +86,45 @@ def load_config() -> ServerConfig:
         raise ValueError(f"配置文件格式错误: {e}")
     except Exception as e:
         raise ValueError(f"加载配置失败: {e}")
+
+
+def load_config_from_env() -> Optional[ServerConfig]:
+    """从环境变量加载配置
+    
+    Returns:
+        ServerConfig: 服务器配置对象，如果必需的环境变量不存在则返回 None
+    """
+    s3_config = S3Config.from_env()
+    if s3_config is None:
+        return None
+        
+    mcp_server_config = MCPServerConfig.from_env()
+    log_level = os.getenv('MCP_LOG_LEVEL', 'INFO')
+    
+    return ServerConfig(
+        s3=s3_config,
+        mcp_server=mcp_server_config,
+        log_level=log_level
+    )
+
+
+def load_config() -> ServerConfig:
+    """加载配置，优先使用环境变量，然后回退到配置文件
+
+    Returns:
+        ServerConfig: 服务器配置对象
+
+    Raises:
+        FileNotFoundError: 配置文件不存在且环境变量不完整
+        ValueError: 配置文件格式错误
+    """
+    # 首先尝试从环境变量加载
+    env_config = load_config_from_env()
+    if env_config is not None:
+        return env_config
+    
+    # 如果环境变量不完整，则从配置文件加载
+    return load_config_from_file()
 
 
 _config = None
