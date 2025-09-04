@@ -1,4 +1,5 @@
-FROM python:3.12-slim
+# FROM python:3.12-slim
+FROM hub.byted.org/base/debian.bookworm.python312:latest
 
 WORKDIR /app
 
