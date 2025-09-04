@@ -6,16 +6,14 @@ WORKDIR /app
 ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt-get update && apt-get install -y && \
-apt-get clean && \
-rm -rf /var/lib/apt/lists/* && \
-pip install --no-cache-dir uv
-
-COPY pyproject.toml .
-
-RUN uv pip install --system .
+RUN apt-get update && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/* && \
+  pip install --no-cache-dir uv
 
 COPY . .
+
+RUN uv pip install --system .
 
 EXPOSE 8001
 
