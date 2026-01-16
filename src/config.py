@@ -24,7 +24,8 @@ class S3Config(BaseModel):
         access_key = os.getenv("S3_ACCESS_KEY")
         secret_key = os.getenv("S3_SECRET_KEY")
         bucket = os.getenv("S3_BUCKET")
-
+        logger.info(f"S3_ACCESS_KEY: {access_key}, S3_SECRET_KEY: {'***' if secret_key else None}, S3_BUCKET: {bucket}")
+        
         if not all([access_key, secret_key, bucket]):
             return None
 
