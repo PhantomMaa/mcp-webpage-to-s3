@@ -20,9 +20,9 @@ class S3Config(BaseModel):
     @classmethod
     def from_env(cls) -> Optional['S3Config']:
         """从环境变量创建 S3 配置"""
-        access_key = os.getenv('MCP_S3_ACCESS_KEY')
-        secret_key = os.getenv('MCP_S3_SECRET_KEY')
-        bucket = os.getenv('MCP_S3_BUCKET')
+        access_key = os.getenv('S3_ACCESS_KEY')
+        secret_key = os.getenv('S3_SECRET_KEY')
+        bucket = os.getenv('S3_BUCKET')
         
         if not all([access_key, secret_key, bucket]):
             return None
@@ -30,10 +30,10 @@ class S3Config(BaseModel):
         return cls(
             access_key=access_key,  # type: ignore
             secret_key=secret_key,  # type: ignore
-            endpoint=os.getenv('MCP_S3_ENDPOINT'),
-            region=os.getenv('MCP_S3_REGION'),
+            endpoint=os.getenv('S3_ENDPOINT'),
+            region=os.getenv('S3_REGION'),
             bucket=bucket,  # type: ignore
-            base_url=os.getenv('MCP_S3_BASE_URL', '')
+            base_url=os.getenv('S3_BASE_URL', '')
         )
 
 
@@ -46,11 +46,11 @@ class MCPServerConfig(BaseModel):
     @classmethod
     def from_env(cls) -> 'MCPServerConfig':
         """从环境变量创建 MCP 服务器配置"""
-        transport_str = os.getenv('MCP_TRANSPORT', 'stdio')
+        transport_str = os.getenv('MCP_SERVER_TRANSPORT', 'stdio')
         # 验证 transport 值
         valid_transports = ["stdio", "http", "sse", "streamable-http"]
         transport = transport_str if transport_str in valid_transports else "stdio"
-        port = int(os.getenv('MCP_PORT', '8000'))
+        port = int(os.getenv('MCP_SERVER_PORT', '8000'))
         
         return cls(transport=transport, port=port)  # type: ignore
 
