@@ -5,18 +5,12 @@ description = "MCP Server for deploy html content to S3"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastmcp>=2.12.5",
-    "boto3>=1.40.56",
+    "fastmcp>=2.14.3",
+    "boto3>=1.42.30",
     "pyyaml>=6.0.3",
     "loguru>=0.7.3",
-    "pydantic>=2.12.3",
-    "typing-extensions>=4.15.0",
+    "pydantic>=2.12.5",
     "nanoid>=2.0.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0.0",
 ]
 
 [project.scripts]
