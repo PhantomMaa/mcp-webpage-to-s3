@@ -91,11 +91,11 @@ docker run -p 8001:8001 mcp-webpage-to-s3
 2. **YAML 配置文件**（`config.yaml`）- 推荐用于容器化部署
 
 ### 关键环境变量
-- `MCP_S3_ACCESS_KEY`, `MCP_S3_SECRET_KEY`: S3 凭证
-- `MCP_S3_BUCKET`, `MCP_S3_ENDPOINT`, `MCP_S3_BASE_URL`: S3 设置
-- `MCP_TRANSPORT`: 传输协议（stdio, http, sse, streamable-http）
-- `MCP_PORT`: 非 stdio 传输的服务器端口
-- `MCP_LOG_LEVEL`: 日志级别
+- `S3_ACCESS_KEY`, `S3_SECRET_KEY`: S3 凭证
+- `S3_BUCKET`, `S3_ENDPOINT`, `S3_BASE_URL`: S3 设置
+- `MCP_SERVER_TRANSPORT`: 传输协议（stdio, http, sse, streamable-http）
+- `MCP_SERVER_PORT`: 非 stdio 传输的服务器端口
+- `LOG_LEVEL`: 日志级别
 
 ### MCP 工具
 

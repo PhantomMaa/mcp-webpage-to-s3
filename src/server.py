@@ -6,6 +6,8 @@ from typing import Any, Dict
 from fastmcp import FastMCP
 from pydantic import Field
 from loguru import logger
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from src.deploy import upload_html_content
 
@@ -15,6 +17,13 @@ from src.config import get_config
 
 # 创建 MCP 服务器
 mcp = FastMCP("mcp-webpage-to-s3", stateless_http=True, json_response=True)
+
+
+# 健康检查端点，用于 ByteFaaS 平台健康检查
+@mcp.custom_route("/v1/ping", methods=["GET"])
+async def v1_ping(_request: Request) -> JSONResponse:
+    """健康检查端点"""
+    return JSONResponse({"success": True, "message": "服务正常运行"})
 
 
 @mcp.tool(name="deploy_html_to_s3", description="部署网页内容到 S3 存储")
@@ -30,11 +39,7 @@ def deploy_html_to_s3(html_content: str = Field(description="网页内容")) -> 
 
         logger.info(f"HTML 文件部署成功: {file_url}")
 
-        return {
-            "success": True,
-            "message": "HTML 文件部署成功",
-            "url": file_url
-        }
+        return {"success": True, "message": "HTML 文件部署成功", "url": file_url}
 
     except Exception as e:
         error_msg = f"HTML 部署异常: {str(e)}"
@@ -48,7 +53,7 @@ def run_server():
     setup_logging()
 
     # 设置信号处理函数
-    def signal_handler(sig, frame):
+    def signal_handler(_sig, _frame):
         logger.info("收到终止信号，正在优雅关闭服务...")
         sys.exit(0)
 
