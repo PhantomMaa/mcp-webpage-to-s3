@@ -5,6 +5,7 @@ from typing import Optional, Literal
 from pydantic import BaseModel, Field
 import yaml
 from pathlib import Path
+from loguru import logger
 
 
 class S3Config(BaseModel):
@@ -18,22 +19,23 @@ class S3Config(BaseModel):
     base_url: str = Field(default="", description="基础 URL 前缀")
 
     @classmethod
-    def from_env(cls) -> Optional['S3Config']:
+    def from_env(cls) -> Optional["S3Config"]:
         """从环境变量创建 S3 配置"""
-        access_key = os.getenv('MCP_S3_ACCESS_KEY')
-        secret_key = os.getenv('MCP_S3_SECRET_KEY')
-        bucket = os.getenv('MCP_S3_BUCKET')
+        access_key = os.getenv("S3_ACCESS_KEY")
+        secret_key = os.getenv("S3_SECRET_KEY")
+        bucket = os.getenv("S3_BUCKET")
+        logger.info(f"S3_ACCESS_KEY: {access_key}, S3_SECRET_KEY: {'***' if secret_key else None}, S3_BUCKET: {bucket}")
         
         if not all([access_key, secret_key, bucket]):
             return None
-            
+
         return cls(
             access_key=access_key,  # type: ignore
             secret_key=secret_key,  # type: ignore
-            endpoint=os.getenv('MCP_S3_ENDPOINT'),
-            region=os.getenv('MCP_S3_REGION'),
+            endpoint=os.getenv("S3_ENDPOINT"),
+            region=os.getenv("S3_REGION"),
             bucket=bucket,  # type: ignore
-            base_url=os.getenv('MCP_S3_BASE_URL', '')
+            base_url=os.getenv("S3_BASE_URL", ""),
         )
 
 
@@ -44,14 +46,14 @@ class MCPServerConfig(BaseModel):
     port: int = Field(default=8000, description="MCP 服务器端口")
 
     @classmethod
-    def from_env(cls) -> 'MCPServerConfig':
+    def from_env(cls) -> "MCPServerConfig":
         """从环境变量创建 MCP 服务器配置"""
-        transport_str = os.getenv('MCP_TRANSPORT', 'stdio')
+        transport_str = os.getenv("MCP_SERVER_TRANSPORT", "stdio")
         # 验证 transport 值
         valid_transports = ["stdio", "http", "sse", "streamable-http"]
         transport = transport_str if transport_str in valid_transports else "stdio"
-        port = int(os.getenv('MCP_PORT', '8000'))
-        
+        port = int(os.getenv("MCP_SERVER_PORT", "8000"))
+
         return cls(transport=transport, port=port)  # type: ignore
 
 
@@ -90,22 +92,23 @@ def load_config_from_file() -> ServerConfig:
 
 def load_config_from_env() -> Optional[ServerConfig]:
     """从环境变量加载配置
-    
+
     Returns:
         ServerConfig: 服务器配置对象，如果必需的环境变量不存在则返回 None
     """
     s3_config = S3Config.from_env()
     if s3_config is None:
+        logger.info("S3 配置不完整，无法从环境变量加载")
         return None
-        
+
     mcp_server_config = MCPServerConfig.from_env()
-    log_level = os.getenv('MCP_LOG_LEVEL', 'INFO')
-    
-    return ServerConfig(
-        s3=s3_config,
-        mcp_server=mcp_server_config,
-        log_level=log_level
-    )
+    if mcp_server_config is None:
+        logger.info("MCP 服务器配置不完整，无法从环境变量加载")
+        return None
+
+    log_level = os.getenv("LOG_LEVEL", "INFO")
+
+    return ServerConfig(s3=s3_config, mcp_server=mcp_server_config, log_level=log_level)
 
 
 def load_config() -> ServerConfig:
@@ -122,7 +125,7 @@ def load_config() -> ServerConfig:
     env_config = load_config_from_env()
     if env_config is not None:
         return env_config
-    
+
     # 如果环境变量不完整，则从配置文件加载
     return load_config_from_file()
 
